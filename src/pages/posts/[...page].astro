@@ -1,0 +1,15 @@
+---
+import LiteraryJournal from "@/components/LiteraryJournal.astro";
+import { getAllPosts, sortMDByDate } from "@/data/post";
+import type { CollectionEntry } from "astro:content";
+import type { GetStaticPaths, Page } from "astro";
+
+export const getStaticPaths = (async ({ paginate }) => {
+  const posts = sortMDByDate(await getAllPosts());
+  return paginate(posts, { pageSize: 1000 });
+}) satisfies GetStaticPaths;
+
+interface Props { page: Page<CollectionEntry<"post">>; }
+const { page } = Astro.props;
+---
+<LiteraryJournal title="随笔" posts={page.data} prevUrl={page.url.prev} nextUrl={page.url.next} />

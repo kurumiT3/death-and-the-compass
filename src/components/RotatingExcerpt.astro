@@ -1,0 +1,52 @@
+---
+interface Props { excerpts: string[] }
+const excerpts = Astro.props.excerpts.filter((text) => text.trim().length > 0);
+---
+{excerpts.length > 0 && (
+  <p class="excerpt" data-rotating-excerpt data-excerpts={JSON.stringify(excerpts)}>
+    <span data-excerpt-text>{excerpts[0]}</span><span class="cursor" aria-hidden="true"></span>
+  </p>
+)}
+<style>
+  .excerpt { color: hsl(var(--theme-text-muted)); font-size: 16px; line-height: 1.8; min-height: 3.6em; margin: 0 auto; max-width: 34rem; }
+  .cursor { display: inline-block; height: 1em; border-right: 1px solid hsl(var(--theme-accent)); margin-left: 3px; vertical-align: -.1em; animation: cursor-blink 1s steps(1, end) infinite; }
+  @keyframes cursor-blink { 50% { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .cursor { animation: none; } }
+</style>
+<script>
+  document.querySelectorAll<HTMLElement>('[data-rotating-excerpt]').forEach((container) => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const content = container.querySelector<HTMLElement>('[data-excerpt-text]');
+    if (!content) return;
+    const excerpts: string[] = JSON.parse(container.dataset.excerpts || '[]');
+    if (!excerpts.length) return;
+    let current = 0;
+    let characters = Array.from(excerpts[current]);
+    let count = characters.length;
+    let deleting = true;
+    function advance() {
+      if (!container.isConnected || !content) return;
+      if (deleting) {
+        count--;
+        content.textContent = characters.slice(0, count).join('');
+        if (count === 0) {
+          if (excerpts.length > 1) {
+            const offset = 1 + Math.floor(Math.random() * (excerpts.length - 1));
+            current = (current + offset) % excerpts.length;
+          }
+          characters = Array.from(excerpts[current]);
+          deleting = false;
+          window.setTimeout(advance, 350);
+        } else window.setTimeout(advance, 32);
+      } else {
+        count++;
+        content.textContent = characters.slice(0, count).join('');
+        if (count === characters.length) {
+          deleting = true;
+          window.setTimeout(advance, 5000);
+        } else window.setTimeout(advance, 90);
+      }
+    }
+    window.setTimeout(advance, 5000);
+  });
+</script>

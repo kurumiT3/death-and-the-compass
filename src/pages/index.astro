@@ -1,0 +1,6 @@
+---
+import LiteraryJournal from "@/components/LiteraryJournal.astro";
+import { getAllPosts, sortMDByDate } from "@/data/post";
+const posts = sortMDByDate(await getAllPosts());
+---
+<LiteraryJournal title="首页" posts={posts} />

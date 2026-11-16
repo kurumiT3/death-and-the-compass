@@ -1,0 +1,4 @@
+/* Keep all text upright, including emphasis, quotations and generated initials. */
+*, *::before, *::after, *::first-letter, *::first-line {
+  font-style: normal !important;
+}
