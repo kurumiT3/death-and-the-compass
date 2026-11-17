@@ -1,6 +1,6 @@
 ---
 title: 失踪曲（上）
-publishDate: 2024-5
+publishDate: 2024-6
 description: 诗歌是垃圾，他想。随即又看着窗外暗戳戳向后倒退的灌木，思考起那些诸如影子、野兽和粘液那样的东西。
 tags: [小说]
 ---

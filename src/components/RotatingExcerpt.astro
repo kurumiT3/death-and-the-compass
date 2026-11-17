@@ -43,10 +43,10 @@ const excerpts = Astro.props.excerpts.filter((text) => text.trim().length > 0);
         content.textContent = characters.slice(0, count).join('');
         if (count === characters.length) {
           deleting = true;
-          window.setTimeout(advance, 5000);
+          window.setTimeout(advance, 15000);
         } else window.setTimeout(advance, 90);
       }
     }
-    window.setTimeout(advance, 5000);
+    window.setTimeout(advance, 15000);
   });
 </script>
