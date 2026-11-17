@@ -20,8 +20,8 @@ jobs:
           node-version: 24
           package-manager: pnpm@10.34.6
         env:
-          SITE_URL: https://kurumit3.github.io
-          BASE_PATH: /death-and-the-compass
+          SITE_URL: https://blog.kaft.top
+          BASE_PATH: /
           ASTRO_TELEMETRY_DISABLED: 1
   deploy:
     needs: build
