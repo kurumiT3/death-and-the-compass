@@ -7,5 +7,6 @@ export function remarkReadingTime() {
 		const textOnPage = mdastToString(tree);
 		const readingTime = getReadingTime(textOnPage);
 		data.astro.frontmatter.minutesRead = readingTime.text;
+		data.astro.frontmatter.characterCount = (textOnPage.match(/[\p{L}\p{N}]/gu) ?? []).length;
 	};
 }

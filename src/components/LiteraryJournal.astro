@@ -3,7 +3,9 @@ import { Image } from "astro:assets";
 import RotatingExcerpt from "@/components/RotatingExcerpt.astro";
 import PageLayout from "@/layouts/Base.astro";
 import { getPostHref } from "@/data/post";
-import type { CollectionEntry } from "astro:content";
+import { render, type CollectionEntry } from "astro:content";
+import { createMarkdownProcessor } from "@astrojs/markdown-remark";
+import { remarkReadingTime } from "../plugins/remark-reading-time";
 import { siteConfig } from "@/site-config";
 import { getFormattedDate } from "@/utils/date";
 import { withBase } from "@/utils/path";
@@ -15,6 +17,18 @@ interface Props {
   nextUrl?: string;
 }
 const { posts, title, prevUrl, nextUrl } = Astro.props;
+let countProcessor: ReturnType<typeof createMarkdownProcessor> | undefined;
+const characterCounts = new Map(await Promise.all(posts.map(async (post) => {
+	if (post.data.externalUrl) return [post.id, undefined] as const;
+	const { remarkPluginFrontmatter } = await render(post);
+	let count = (remarkPluginFrontmatter as { characterCount?: number }).characterCount;
+	if (count === undefined && post.body) {
+		countProcessor ??= createMarkdownProcessor({ remarkPlugins: [remarkReadingTime] });
+		const result = await (await countProcessor).render(post.body);
+		count = result.metadata.frontmatter.characterCount as number | undefined;
+	}
+	return [post.id, count] as const;
+})));
 ---
 
 <PageLayout meta={{ title, description: siteConfig.description }}>
@@ -42,7 +56,9 @@ const { posts, title, prevUrl, nextUrl } = Astro.props;
 							{post.data.tags.map((tag) => <li><a href={withBase(`/tags/${encodeURIComponent(tag)}/`)}>{tag}</a></li>)}
 						</ul>
 					)}
-					<a class="read-link" href={getPostHref(post)}>阅读全文 <span aria-hidden="true">→</span></a>
+					{characterCounts.get(post.id) !== undefined && (
+						<p class="character-count">约 {characterCounts.get(post.id)?.toLocaleString("zh-CN")} 字</p>
+					)}
 				</div>
 			</article>
 		)) : <p class="empty">这里还没有文章，期待你的第一篇随笔。</p>}
@@ -65,12 +81,12 @@ const { posts, title, prevUrl, nextUrl } = Astro.props;
 	.story-cover :global(img) { display: block; width: 100%; height: auto; max-height: 520px; object-fit: cover; }
 	.story-content { text-align: center; max-width: 38rem; margin: 0 auto; }
 	h2 { font-size: clamp(23px, 3.3vw, 28px); font-weight: 500; line-height: 1.5; letter-spacing: .06em; margin: 0; }
-	h2 a:hover, .tags a:hover, .read-link:hover { color: hsl(var(--theme-accent)); }
+	h2 a:hover, .tags a:hover { color: hsl(var(--theme-accent)); }
 	.divider { width: 42px; height: 1px; background: hsl(var(--theme-accent)); margin: 26px auto; }
 	.description { max-width: 34rem; margin: 0 auto 32px; font-size: 17px; line-height: 1.9; color: hsl(var(--theme-text-muted)); }
 	time { display: block; font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em; color: hsl(var(--theme-text-muted)); }
 	.tags { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; list-style: none; padding: 0; margin: 12px 0 0; color: hsl(var(--theme-text-muted)); font-size: 13px; }
-	.read-link { display: inline-block; margin-top: 32px; font-size: 13px; letter-spacing: .08em; border-bottom: 1px solid hsl(var(--theme-text) / .3); padding-bottom: 3px; }
+	.character-count { margin: 32px 0 0; font-size: 13px; letter-spacing: .08em; color: hsl(var(--theme-text-muted)); }
 	.pagination { display: flex; justify-content: center; gap: 32px; font-size: 14px; }
 	.pagination a:hover { color: hsl(var(--theme-accent)); }
 	.empty { text-align: center; color: hsl(var(--theme-text-muted)); }
